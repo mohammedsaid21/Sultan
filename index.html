@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#059669" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>حاسبة الكهربا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f8f7; --surface: #ffffff; --surface-2: #f0f7f5; --surface-3: #e9f1ee;
+    --border: #e2eeea; --border-strong: #cfe3dc; --text: #0f1f1b; --muted: #5c6b66;
+    --primary: #059669; --primary-strong: #047857; --primary-soft: #d1fae5; --primary-softer: #ecfdf5;
+    --accent: #dc2626; --accent-soft: #fee2e2; --warn: #b45309; --warn-soft: #fef3c7; --good: #15803d;
+    --radius: 16px; --radius-sm: 11px;
+    --shadow-sm: 0 1px 2px rgba(15,31,27,.05);
+    --shadow: 0 1px 2px rgba(15,31,27,.04), 0 8px 24px rgba(15,31,27,.06);
+    --shadow-lg: 0 16px 44px rgba(4,120,87,.18);
+    --bar-h: 78px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #070f0d; --surface: #0f1a17; --surface-2: #102420; --surface-3: #162e27;
+      --border: #1c2e29; --border-strong: #25403a; --text: #e6efeb; --muted: #94a8a1;
+      --primary: #34d399; --primary-strong: #6ee7b7; --primary-soft: #0a3a2c; --primary-softer: #0d2c23;
+      --accent: #f87171; --accent-soft: #3a1212; --warn: #fbbf24; --warn-soft: #3a2a07; --good: #4ade80;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.42);
+      --shadow-lg: 0 16px 44px rgba(0,0,0,.55);
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans Arabic', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif; color: var(--text); background: var(--bg); min-height: 100dvh; line-height: 1.5; font-size: 16px; -webkit-font-smoothing: antialiased; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); overscroll-behavior-y: none; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 12px calc(var(--bar-h) + 28px); }
+
+  header.app { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 11px; padding: 12px 4px 10px; background: linear-gradient(var(--bg) 70%, transparent); backdrop-filter: blur(6px); }
+  .logo { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 12px; background: linear-gradient(140deg, var(--primary), var(--primary-strong)); color: #fff; box-shadow: var(--shadow-lg); }
+  .logo svg { width: 21px; height: 21px; }
+  header.app h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: -.01em; }
+  header.app p { margin: 0; font-size: 11.5px; color: var(--muted); font-weight: 500; }
+  .icon-btn { margin-inline-start: auto; width: 40px; height: 40px; flex: none; cursor: pointer; display: grid; place-items: center; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); box-shadow: var(--shadow-sm); transition: background .15s, color .15s; position: relative; }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn svg { width: 19px; height: 19px; }
+  .status { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); position: absolute; inset-inline-end: 5px; inset-block-start: 5px; }
+  .status.on { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .status.sync { background: var(--warn); animation: spulse 1s ease-in-out infinite; }
+  .status.off { background: var(--muted); opacity: .45; }
+  @keyframes spulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .status.sync { animation: none; } }
+
+  .tabs { display: flex; gap: 4px; padding: 4px; margin: 4px 0 12px; background: var(--surface-3); border-radius: 13px; }
+  .tab { flex: 1; border: 0; background: transparent; cursor: pointer; font: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 10px 6px; border-radius: 10px; font-weight: 700; font-size: 13.5px; color: var(--muted); transition: background .18s, color .18s, box-shadow .18s; min-height: 44px; }
+  .tab svg { width: 15px; height: 15px; }
+  .tab .tc { font-size: 11px; background: var(--surface); color: var(--muted); padding: 1px 7px; border-radius: 999px; font-weight: 800; min-width: 18px; text-align: center; }
+  .tab.active { background: var(--surface); color: var(--primary-strong); box-shadow: var(--shadow-sm); }
+  .tab.active .tc { background: var(--primary-soft); color: var(--primary-strong); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  @media (prefers-reduced-motion: no-preference) { .tab-panel.active { animation: fade .25s ease both; } @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px; }
+  .card-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px; margin-bottom: 12px; }
+  .card-title .ic { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 8px; background: var(--primary-softer); color: var(--primary-strong); }
+  .card-title .ic svg { width: 15px; height: 15px; }
+  .card-title .badge { font-size: 11px; font-weight: 800; color: var(--muted); background: var(--surface-3); padding: 2px 8px; border-radius: 999px; }
+  .link-btn { margin-inline-start: auto; border: 0; background: transparent; cursor: pointer; font: inherit; font-weight: 700; font-size: 13px; color: var(--primary-strong); display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 8px; }
+  .link-btn:hover { background: var(--primary-softer); }
+  .link-btn svg { width: 15px; height: 15px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .control { display: flex; align-items: center; gap: 6px; background: var(--surface-2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 9px 11px; transition: border-color .16s, box-shadow .16s, background .16s; }
+  .control:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3.5px var(--primary-soft); background: var(--surface); }
+  .control .unit { font-size: 11px; color: var(--muted); white-space: nowrap; font-weight: 600; }
+  input[type="number"], input[type="text"], input[type="date"] { border: 0; outline: 0; background: transparent; width: 100%; font: inherit; color: var(--text); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; -moz-appearance: textfield; min-width: 0; }
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input::placeholder { color: var(--muted); opacity: .5; font-weight: 500; }
+
+  .meter { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .meter-head { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 12.5px; margin-bottom: 10px; color: var(--primary-strong); }
+  .meter-head .ic-sm { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 7px; background: var(--primary-soft); color: var(--primary-strong); }
+  .meter-head .ic-sm svg { width: 13px; height: 13px; }
+  .meter-res { margin-top: 9px; padding: 9px 11px; background: var(--primary-softer); border-radius: var(--radius-sm); font-size: 12.5px; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .meter-res b { color: var(--primary-strong); font-size: 16px; font-variant-numeric: tabular-nums; }
+
+  #people { display: flex; flex-direction: column; gap: 8px; }
+  .person { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 11px; background: var(--surface-2); transition: border-color .16s; }
+  .person:focus-within { border-color: var(--border-strong); }
+  .person-head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .person-idx { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 8px; background: var(--surface-3); color: var(--muted); font-weight: 800; font-size: 12px; }
+  .person-head .pname { font-weight: 700; font-size: 14.5px; }
+  .del { border: 0; background: transparent; color: var(--muted); cursor: pointer; width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; transition: background .15s, color .15s; }
+  .del:hover { background: var(--accent-soft); color: var(--accent); }
+  .del svg { width: 16px; height: 16px; }
+  .person-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mini-field { display: flex; flex-direction: column; gap: 4px; }
+  .mini-field .ml { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+  .mini-field .ml.new { color: var(--primary-strong); }
+  .person-res { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 600; }
+  .pkwh { color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+  .pkwh.warn { color: var(--accent); }
+  .pkwh svg { width: 14px; height: 14px; }
+  .pkwh .kv { font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .pamt { font-weight: 800; color: var(--primary-strong); font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  .person-debt { margin-top: 8px; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; background: var(--accent-soft); font-size: 12px; }
+  .person-debt.zero, .person-debt.credit { background: var(--primary-softer); }
+  .person-debt .dl { font-weight: 600; color: var(--muted); }
+  .person-debt .dv { font-weight: 800; font-variant-numeric: tabular-nums; margin-inline-start: auto; font-size: 13px; }
+  .person-debt .dv.pos { color: var(--accent); }
+  .person-debt .dv.neg { color: var(--good); }
+  .pay-btn { border: 0; cursor: pointer; font: inherit; font-weight: 700; font-size: 11.5px; padding: 6px 10px; border-radius: 8px; background: var(--surface); color: var(--primary-strong); border: 1px solid var(--border-strong); display: inline-flex; align-items: center; gap: 4px; flex: none; }
+  .pay-btn svg { width: 13px; height: 13px; }
+  .note { font-size: 11.5px; color: var(--muted); margin-top: 10px; display: flex; gap: 6px; align-items: flex-start; line-height: 1.5; }
+  .note svg { width: 14px; height: 14px; flex: none; margin-top: 2px; color: var(--primary); }
+
+  .bottombar { position: fixed; inset-inline: 0; bottom: 0; z-index: 40; display: flex; align-items: stretch; gap: 10px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--border); box-shadow: 0 -8px 28px rgba(15,31,27,.08); }
+  .bar-info { flex: 1; min-width: 0; border: 0; background: transparent; cursor: pointer; text-align: start; font: inherit; color: inherit; display: flex; align-items: center; gap: 9px; padding: 4px 6px; border-radius: 12px; transition: background .15s; }
+  .bar-info:hover { background: var(--surface-2); }
+  .bar-chev { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 8px; background: var(--primary-soft); color: var(--primary-strong); }
+  .bar-chev svg { width: 16px; height: 16px; }
+  .bar-text { min-width: 0; }
+  .bar-row1 { display: flex; align-items: baseline; gap: 8px; }
+  .bar-label { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+  .bar-amt { font-size: 21px; font-weight: 800; color: var(--primary-strong); font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.1; }
+  .bar-amt.placeholder { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .bar-sub { font-size: 11px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bar-copy { flex: none; min-height: 52px; padding: 0 16px; }
+  .bar-copy svg { width: 17px; height: 17px; }
+  .bottombar.neg .bar-amt { color: var(--warn); }
+  .bottombar.neg .bar-chev { background: var(--warn-soft); color: var(--warn); }
+
+  .btn { border: 0; cursor: pointer; font: inherit; font-weight: 700; border-radius: var(--radius-sm); padding: 13px 14px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .05s, filter .15s, background .15s, border-color .15s; min-height: 48px; }
+  .btn svg { width: 17px; height: 17px; }
+  .btn:active { transform: translateY(1px) scale(.995); }
+  .btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-strong)); color: #fff; box-shadow: var(--shadow); }
+  .btn.ghost { background: var(--surface); color: var(--text); border: 1.5px solid var(--border-strong); }
+  .btn.danger-ghost { background: var(--surface); color: var(--accent); border: 1.5px solid var(--accent-soft); }
+  .btn.full { width: 100%; }
+
+  .sheet { position: fixed; inset: 0; z-index: 70; visibility: hidden; }
+  .sheet.open { visibility: visible; }
+  .sheet-backdrop { position: absolute; inset: 0; background: rgba(2,12,9,.5); opacity: 0; transition: opacity .24s; }
+  .sheet.open .sheet-backdrop { opacity: 1; }
+  .sheet-panel { position: absolute; inset-inline: 0; bottom: 0; background: var(--surface); border-radius: 22px 22px 0 0; transform: translateY(102%); transition: transform .3s cubic-bezier(.2,.75,.3,1); max-height: 88vh; overflow: auto; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,.25); }
+  .sheet.open .sheet-panel { transform: none; }
+  .sheet-handle { width: 38px; height: 4px; border-radius: 999px; background: var(--border-strong); margin: 6px auto 12px; }
+  .sheet-head { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+  .sheet-head h3 { margin: 0; font-size: 16px; font-weight: 800; flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .sheet-head .ic { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px; background: var(--primary-softer); color: var(--primary-strong); }
+  .sheet-head .ic svg { width: 17px; height: 17px; }
+  .sheet-close { border: 0; background: var(--surface-3); cursor: pointer; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); flex: none; }
+  .sheet-close:hover { background: var(--accent-soft); color: var(--accent); }
+  .sheet-close svg { width: 18px; height: 18px; }
+
+  .bill-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px; }
+  .bill-strip .cell { display: flex; flex-direction: column; gap: 2px; }
+  .bill-strip .cell + .cell { border-inline-start: 1px solid var(--border); padding-inline-start: 10px; }
+  .bill-strip .lab { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .bill-strip .big { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .bill-strip .big.dim { color: var(--muted); font-size: 13px; font-weight: 600; }
+  #breakdown { display: flex; flex-direction: column; gap: 6px; }
+  .pr { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+  .pr .avatar { width: 26px; height: 26px; flex: none; border-radius: 8px; display: grid; place-items: center; background: var(--surface-3); color: var(--primary-strong); font-weight: 800; font-size: 12px; }
+  .pr .mid { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
+  .pr .n { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pr .d { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pr .a { font-weight: 800; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 14px 8px; }
+  .row-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 4px 2px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .row-line .v { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pill { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .pill svg { width: 13px; height: 13px; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 14px; }
+
+  .total-debt { display: flex; align-items: baseline; justify-content: space-between; padding: 13px 14px; border-radius: var(--radius-sm); background: var(--primary-softer); margin-bottom: 12px; }
+  .total-debt .tl { font-weight: 700; color: var(--primary-strong); font-size: 13px; }
+  .total-debt .tv { font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .total-debt .tv.pos { color: var(--accent); }
+  .total-debt .tv.zero { color: var(--good); }
+  .debt-card { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--surface-2); }
+  .debt-card + .debt-card { margin-top: 9px; }
+  .debt-card .dh { display: flex; align-items: center; gap: 9px; }
+  .debt-card .avatar { width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--surface-3); color: var(--primary-strong); display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+  .debt-card .dn { font-weight: 700; flex: 1; font-size: 14px; }
+  .debt-card .db { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 15px; text-align: end; }
+  .debt-card .db .lab { display: block; font-size: 10.5px; font-weight: 600; color: var(--muted); }
+  .debt-card .db.pos { color: var(--accent); }
+  .debt-card .db.neg { color: var(--good); }
+  .debt-card .db.zero { color: var(--muted); }
+  .debt-card .row { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .debt-card .row .btn { min-height: 42px; padding: 9px; font-size: 13px; }
+  .pay-list { margin-top: 16px; }
+  .pay-list h4 { font-size: 12px; color: var(--muted); margin: 0 0 8px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .pay-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border); font-size: 12.5px; }
+  .pay-item + .pay-item { margin-top: 6px; }
+  .pay-item .pi-n { font-weight: 700; }
+  .pay-item .pi-a { font-weight: 800; color: var(--good); font-variant-numeric: tabular-nums; }
+  .pay-item .pi-d { color: var(--muted); font-size: 11px; }
+  .pi-x { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 4px; }
+  .pi-x:hover { color: var(--accent); }
+
+  .hist-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; background: var(--surface-2); }
+  .hist-item + .hist-item { margin-top: 9px; }
+  .hist-item .htop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .hist-item .hdate { font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+  .hist-item .hdate svg { width: 14px; height: 14px; color: var(--primary); }
+  .hist-item .hsum { font-size: 12px; color: var(--muted); margin-bottom: 7px; font-variant-numeric: tabular-nums; }
+  .hist-item .hdel { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 700; }
+  .hist-item .hdel:hover { color: var(--accent); }
+  .hist-item .hrow { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
+  .hist-item .hrow .va { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hist-item .hrow .rd { color: var(--muted); font-size: 11px; }
+
+  .toast { position: fixed; bottom: calc(var(--bar-h) + 16px); left: 50%; transform: translateX(-50%) translateY(16px); background: #0f1f1b; color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 700; font-size: 13px; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; z-index: 90; display: inline-flex; align-items: center; gap: 7px; max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast svg { width: 15px; height: 15px; flex: none; }
+  @media (min-width: 540px) { .wrap { padding-inline: 16px; } }
+</style>
+</head>
+<body>
+
+<!-- DETAILS SHEET -->
+<div class="sheet" id="detailsSheet" aria-hidden="true">
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+      <h3>تفاصيل الكشف</h3>
+      <button class="sheet-close" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="bill-strip">
+      <div class="cell"><span class="lab">إجمالي الفاتورة</span><span class="big" id="billTotal">—</span></div>
+      <div class="cell"><span class="lab">إجمالي الاستهلاك</span><span class="big" id="billKwh">—</span></div>
+    </div>
+    <div id="breakdown"></div>
+    <div class="row-line"><span>مجموع الرفاق (هذا الكشف)</span><span class="v" id="othersLine">—</span></div>
+    <div class="row-line"><span>إجمالي المستحق عليهم</span><span class="v" id="debtLine">—</span></div>
+    <div id="recon"></div>
+    <div class="sheet-actions">
+      <button class="btn primary" id="saveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>حفظ الكشف</button>
+      <button class="btn danger-ghost" id="clearBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>مسح الجديدة</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAY SHEET -->
+<div class="sheet" id="paySheet" aria-hidden="true">
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <h3 id="payTitle">تسجيل دفعة</h3>
+      <button class="sheet-close" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="payBalanceLine" class="row-line" style="padding:0 2px 8px"></div>
+    <div class="field"><label for="payAmount">المبلغ المدفوع</label><div class="control"><input type="number" id="payAmount" min="0" step="0.01" inputmode="decimal" placeholder="0" /><span class="unit">شيكل</span></div></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="payFullBtn">سدّد الكل</button>
+      <button class="btn primary" id="payConfirmBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>تأكيد السداد</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="settingsSheet" aria-hidden="true">
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg></span>
+      <h3>الإعدادات والنسخ الاحتياطي</h3>
+      <button class="sheet-close" data-close aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="price">سعر الكيلو</label><div class="control"><input type="number" id="price" min="0" step="0.1" inputmode="decimal" value="30" /><span class="unit">شيكل</span></div></div>
+      <div class="field"><label for="loss">الفقد لكل كيلو</label><div class="control"><input type="number" id="loss" min="0" step="0.1" inputmode="decimal" value="4" /><span class="unit">شيكل</span></div></div>
+    </div>
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>المستحقات بتحسب تلقائياً = (مجموع الكشوفات − الدفعات المسجّلة). لما حد يدفع، افتح «المستحقات» أو اضغط «سداد».</div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>تصدير نسخة</button>
+      <button class="btn ghost" id="importBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>استيراد</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" hidden />
+  </div>
+</div>
+
+<!-- APP -->
+<div class="wrap">
+  <header class="app">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+    <div><h1>حاسبة الكهربا</h1><p>تقسيم الفاتورة على الرفاق</p></div>
+    <button class="icon-btn" id="settingsBtn" aria-label="الإعدادات">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="status" id="syncStatus"></span>
+    </button>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="calc" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>الحاسبة</button>
+    <button class="tab" data-tab="debts" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="12" cy="15" r="1.5"/></svg>المستحقات <span class="tc" id="debtCount">0</span></button>
+    <button class="tab" data-tab="history" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>السجل <span class="tc" id="histCount">0</span></button>
+  </div>
+
+  <!-- CALC TAB -->
+  <div class="tab-panel active" data-panel="calc">
+    <section class="card">
+      <div class="card-title"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M8 7h8"/><path d="M8 11h6"/></svg></span>فاتورة الشركة</div>
+      <div class="grid2">
+        <div class="field"><label for="date">تاريخ الكشف</label><div class="control"><input type="date" id="date" /></div></div>
+        <div class="field"><label for="bill">مبلغ الفاتورة</label><div class="control"><input type="number" id="bill" min="0" step="0.01" inputmode="decimal" placeholder="150" /><span class="unit">شيكل</span></div></div>
+      </div>
+      <div class="meter">
+        <div class="meter-head"><span class="ic-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14a4 4 0 1 0-4-4"/><path d="M12 2a10 10 0 0 0-7.07 17.07"/><path d="M12 2a10 10 0 0 1 7.07 17.07"/><circle cx="12" cy="10" r="1.5"/></svg></span>الساعة الأساسية (العداد الكلي)</div>
+        <div class="grid2">
+          <div class="field"><label for="meterLast">آخر قراءة</label><div class="control"><input type="number" id="meterLast" inputmode="decimal" step="0.1" placeholder="12000" /></div></div>
+          <div class="field"><label for="meterCur">القراءة الجديدة</label><div class="control"><input type="number" id="meterCur" inputmode="decimal" step="0.1" placeholder="12006" /></div></div>
+        </div>
+        <div class="meter-res"><span>إجمالي الاستهلاك</span><b id="meterTotal">—</b></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>قراءات الرفاق <span class="badge" id="peopleBadge">0</span><button class="link-btn" id="addPerson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>إضافة</button></div>
+      <div id="people"></div>
+      <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>اكتب «القراءة الجديدة» لكل شخص — «آخر قراءة» محفوظة من الكشف السابق. والمستحق بيظهر تحت كل شخص.</div>
+    </section>
+  </div>
+
+  <!-- DEBTS TAB -->
+  <div class="tab-panel" data-panel="debts">
+    <section class="card">
+      <div class="card-title"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="12" cy="15" r="1.5"/></svg></span>المستحقات على الرفاق</div>
+      <div id="debts"></div>
+    </section>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-panel" data-panel="history">
+    <section class="card">
+      <div class="card-title"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>سجل الكشوفات</div>
+      <div id="history"></div>
+    </section>
+  </div>
+</div>
+
+<!-- STICKY RESULT BAR -->
+<div class="bottombar" id="ownerBlock">
+  <button class="bar-info" id="expandDetails" aria-label="عرض التفاصيل">
+    <span class="bar-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></span>
+    <span class="bar-text">
+      <span class="bar-row1"><span class="bar-label">💸 حصتك</span><span class="bar-amt placeholder" id="ownerAmount">—</span></span>
+      <span class="bar-sub" id="ownerKwh">أدخل الفاتورة والقراءات</span>
+    </span>
+  </button>
+  <button class="btn primary bar-copy" id="copyBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>نسخ</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var LS = "electricity_splitter_v1";
+  var JSONBIN_KEY = "$2a$10$dYlW/UL2Ud.A9rjBiCRnjOKtzNx1JYXNYrUU1TC8.tKOmdcHXhRBS";
+  var JSONBIN_BIN = "6a719700f5f4af5e29e884ee";
+  var JSONBIN_URL = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN;
+  var defaultNames = ["أبو عواد", "الشخص 2", "الشخص 3"];
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function fmtDate(s) { var p = String(s || "").split("-"); return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : (s || "—"); }
+
+  function defaultState() {
+    return { v: 3, date: todayStr(), price: 30, loss: 4, bill: "", mainMeter: { last: "", cur: "" },
+      people: defaultNames.map(function (n) { return { id: uid(), name: n, last: "", cur: "" }; }), history: [], payments: [] };
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(LS); if (!raw) return defaultState();
+      var s = JSON.parse(raw), d = defaultState();
+      s.v = 3;
+      s.price = (s.price != null && s.price !== "") ? s.price : d.price;
+      s.loss = (s.loss != null && s.loss !== "") ? s.loss : d.loss;
+      s.bill = s.bill != null ? s.bill : "";
+      s.date = s.date || todayStr();
+      if (s.mainMeter && typeof s.mainMeter === "object") { s.mainMeter = { last: s.mainMeter.last != null ? s.mainMeter.last : "", cur: s.mainMeter.cur != null ? s.mainMeter.cur : "" }; }
+      else { s.mainMeter = { last: "", cur: "" }; }
+      if (Array.isArray(s.people) && s.people.length) {
+        s.people = s.people.map(function (p) { return { id: p.id || uid(), name: p.name || "", last: p.last != null ? p.last : (p.prev != null ? p.prev : ""), cur: p.cur != null ? p.cur : "" }; });
+      } else { s.people = d.people; }
+      s.history = Array.isArray(s.history) ? s.history : [];
+      s.payments = Array.isArray(s.payments) ? s.payments : [];
+      return s;
+    } catch (e) { return defaultState(); }
+  }
+  function persist() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} schedulePush(); }
+  var state = load();
+
+  /* ---------- cloud sync ---------- */
+  var pushTimer = null;
+  function schedulePush() { if (!JSONBIN_BIN) return; clearTimeout(pushTimer); pushTimer = setTimeout(pushCloud, 900); }
+  function pushCloud() {
+    if (!JSONBIN_BIN) { setSync("off"); return; }
+    if (!navigator.onLine) { setSync("off"); return; }
+    setSync("sync");
+    var rec = { v: 3, date: state.date, price: state.price, loss: state.loss, bill: state.bill, mainMeter: state.mainMeter, people: state.people, history: state.history, payments: state.payments, savedAt: Date.now() };
+    fetch(JSONBIN_URL, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_KEY }, body: JSON.stringify(rec) })
+      .then(function (r) { if (!r.ok) throw 0; state.savedAt = rec.savedAt; try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} setSync("on"); })
+      .catch(function () { setSync("off"); });
+  }
+  function pullCloud(done) {
+    if (!JSONBIN_BIN) { done(false); return; }
+    fetch(JSONBIN_URL + "/latest", { headers: { "X-Master-Key": JSONBIN_KEY }, cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) {
+        var rec = (d && d.record) ? d.record : {};
+        var applied = rec.savedAt && rec.savedAt > (state.savedAt || 0);
+        if (applied) { applyCloud(rec); }
+        else if (hasLocalData()) { setTimeout(pushCloud, 300); }
+        done(true, applied);
+      })
+      .catch(function () { done(false); });
+  }
+  function applyCloud(rec) {
+    if (rec.price != null) state.price = rec.price;
+    if (rec.loss != null) state.loss = rec.loss;
+    if (rec.bill != null) state.bill = rec.bill;
+    if (rec.date) state.date = rec.date;
+    if (rec.mainMeter && typeof rec.mainMeter === "object") state.mainMeter = { last: rec.mainMeter.last != null ? rec.mainMeter.last : "", cur: rec.mainMeter.cur != null ? rec.mainMeter.cur : "" };
+    if (Array.isArray(rec.people) && rec.people.length) state.people = rec.people.map(function (p) { return { id: p.id || uid(), name: p.name || "", last: p.last != null ? p.last : (p.prev || ""), cur: p.cur || "" }; });
+    if (Array.isArray(rec.history)) state.history = rec.history;
+    if (Array.isArray(rec.payments)) state.payments = rec.payments;
+    state.savedAt = rec.savedAt || state.savedAt || 0;
+    try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {}
+  }
+  function hasLocalData() {
+    return state.bill !== "" || (state.mainMeter && state.mainMeter.cur !== "") || (state.history && state.history.length) ||
+      (state.payments && state.payments.length) || state.people.some(function (p) { return p.last !== "" || p.cur !== ""; });
+  }
+
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function round2(n) { return Math.round(n * 100) / 100; }
+  function money(n) { if (!isFinite(n)) return "—"; var r = round2(n); return (Math.round(r) === r ? r.toString() : r.toFixed(2)) + " شيكل"; }
+  function esc(v) { return String(v == null ? "" : v).replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+  var el = function (id) { return document.getElementById(id); };
+  var peopleBox = el("people"), breakdown = el("breakdown");
+
+  var ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>';
+  var ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var ICON_CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+
+  /* ---------- balances (derived) ---------- */
+  function billsTotalFor(name) {
+    var t = 0; state.history.forEach(function (h) { (h.rows || []).forEach(function (r) { if (r.name === name) t += num(r.amount); }); }); return t;
+  }
+  function paidTotalFor(name) {
+    var t = 0; (state.payments || []).forEach(function (p) { if (p.name === name) t += num(p.amount); }); return t;
+  }
+  function balanceFor(name) { return round2(billsTotalFor(name) - paidTotalFor(name)); }
+  function allNames() {
+    var set = {}; state.people.forEach(function (p) { if (p.name) set[p.name] = 1; });
+    state.history.forEach(function (h) { (h.rows || []).forEach(function (r) { if (r.name) set[r.name] = 1; }); });
+    (state.payments || []).forEach(function (p) { if (p.name) set[p.name] = 1; });
+    return Object.keys(set);
+  }
+  function totalOutstanding() { var t = 0; allNames().forEach(function (n) { var b = balanceFor(n); if (b > 0) t += b; }); return round2(t); }
+
+  /* ---------- people ---------- */
+  function renderPeople() {
+    peopleBox.innerHTML = "";
+    state.people.forEach(function (p, idx) {
+      var div = document.createElement("div"); div.className = "person"; div.dataset.pid = p.id;
+      div.innerHTML =
+        '<div class="person-head"><span class="person-idx">' + (idx + 1) + '</span>' +
+          '<input type="text" class="pname" data-id="' + p.id + '" placeholder="اسم الشخص" value="' + esc(p.name) + '" />' +
+          '<button class="del" data-id="' + p.id + '" aria-label="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></div>' +
+        '<div class="person-grid">' +
+          '<div class="mini-field"><span class="ml">آخر قراءة</span><div class="control"><input type="number" class="last" data-id="' + p.id + '" inputmode="decimal" step="0.1" placeholder="983" value="' + esc(p.last) + '" /></div></div>' +
+          '<div class="mini-field"><span class="ml new">القراءة الجديدة</span><div class="control"><input type="number" class="cur" data-id="' + p.id + '" inputmode="decimal" step="0.1" placeholder="984" value="' + esc(p.cur) + '" /></div></div>' +
+        '</div>' +
+        '<div class="person-res"><span class="pkwh" data-pid="' + p.id + '"><span class="kv">0</span> كيلو</span><span class="pamt" data-pid="' + p.id + '">0 شيكل</span></div>' +
+        '<div class="person-debt" data-pid="' + p.id + '"><span class="dl">مستحق عليه</span><span class="dv">—</span><button class="pay-btn" type="button">' + ICON_CHECK + 'سداد</button></div>';
+      peopleBox.appendChild(div);
+    });
+    peopleBox.querySelectorAll(".pname").forEach(function (i) { i.addEventListener("input", function (e) { var p = find(e.target.dataset.id); if (p) { p.name = e.target.value; persist(); render(); } }); });
+    peopleBox.querySelectorAll(".last").forEach(function (i) { i.addEventListener("input", function (e) { var p = find(e.target.dataset.id); if (p) { p.last = e.target.value; persist(); render(); } }); });
+    peopleBox.querySelectorAll(".cur").forEach(function (i) { i.addEventListener("input", function (e) { var p = find(e.target.dataset.id); if (p) { p.cur = e.target.value; persist(); render(); } }); });
+    peopleBox.querySelectorAll(".del").forEach(function (b) { b.addEventListener("click", function (e) {
+      var id = e.currentTarget.dataset.id;
+      if (state.people.length <= 1) { toast("على الأقل شخص واحد"); return; }
+      state.people = state.people.filter(function (p) { return p.id !== id; }); persist(); renderPeople(); render();
+    }); });
+    peopleBox.querySelectorAll(".pay-btn").forEach(function (b) { b.addEventListener("click", function (e) {
+      var nameInput = e.currentTarget.closest(".person").querySelector(".pname");
+      openPaySheet(nameInput ? nameInput.value : "شخص");
+    }); });
+  }
+  function find(id) { return state.people.filter(function (p) { return p.id === id; })[0]; }
+
+  function compute() {
+    var price = num(state.price), loss = num(state.loss), rate = price + loss;
+    var bill = num(state.bill);
+    var m = state.mainMeter || { last: "", cur: "" };
+    var totalKwh = num(m.cur) - num(m.last);
+    var rows = state.people.map(function (p) { var k = num(p.cur) - num(p.last); return { id: p.id, name: p.name || "شخص", last: p.last, cur: p.cur, kwh: k, amount: k * rate, neg: k < 0 }; });
+    var othersKwh = rows.reduce(function (s, r) { return s + r.kwh; }, 0);
+    var othersAmount = rows.reduce(function (s, r) { return s + r.amount; }, 0);
+    return { price: price, loss: loss, rate: rate, bill: bill, totalKwh: totalKwh, rows: rows,
+      othersKwh: othersKwh, othersAmount: othersAmount, ownerKwh: totalKwh - othersKwh, ownerAmount: bill - othersAmount,
+      hasBill: state.bill !== "" && isFinite(parseFloat(state.bill)),
+      hasTotal: m.last !== "" && m.cur !== "" && isFinite(parseFloat(m.last)) && isFinite(parseFloat(m.cur)) };
+  }
+
+  function render() {
+    var c = compute();
+    c.rows.forEach(function (r) {
+      var kwhEl = peopleBox.querySelector('.pkwh[data-pid="' + r.id + '"]'), amtEl = peopleBox.querySelector('.pamt[data-pid="' + r.id + '"]');
+      if (kwhEl) { kwhEl.classList.toggle("warn", r.neg); kwhEl.innerHTML = (r.neg ? ICON_WARN + " " : "") + '<span class="kv">' + round2(r.kwh) + '</span> كيلو'; }
+      if (amtEl) amtEl.textContent = money(r.amount);
+      var debt = peopleBox.querySelector('.person-debt[data-pid="' + r.id + '"]');
+      if (debt) {
+        var b = balanceFor(r.name), dv = debt.querySelector(".dv");
+        debt.classList.toggle("zero", b === 0); debt.classList.toggle("credit", b < 0);
+        dv.classList.toggle("pos", b > 0); dv.classList.toggle("neg", b < 0);
+        dv.textContent = b === 0 ? "مسدد" : (b < 0 ? "له " : "عليه ") + money(Math.abs(b)).replace(" شيكل", "") + " شيكل";
+      }
+    });
+    el("peopleBadge").textContent = state.people.length;
+
+    var mt = el("meterTotal"); mt.textContent = c.hasTotal ? (round2(c.totalKwh) + " كيلو") : "—";
+    var bt = el("billTotal"); if (c.hasBill) { bt.textContent = money(c.bill); bt.classList.remove("dim"); } else { bt.textContent = "أدخل المبلغ"; bt.classList.add("dim"); }
+    var bk = el("billKwh"); if (c.hasTotal) { bk.textContent = round2(c.totalKwh) + " كيلو"; bk.classList.remove("dim"); } else { bk.textContent = "أكمل العداد"; bk.classList.add("dim"); }
+
+    breakdown.innerHTML = "";
+    var anyRow = c.rows.some(function (r) { return r.kwh !== 0 || r.amount !== 0; });
+    if (!anyRow) { breakdown.innerHTML = '<div class="empty">اكتب «القراءة الجديدة» للرفاق لظهور الحساب</div>'; }
+    else { c.rows.forEach(function (r) {
+      if (r.kwh === 0 && r.amount === 0) return;
+      var d = document.createElement("div"); d.className = "pr";
+      var initial = (r.name || "ش").trim().charAt(0) || "ش";
+      d.innerHTML = '<div class="mid"><span class="avatar">' + esc(initial) + '</span><div><div class="n">' + esc(r.name) + '</div><div class="d">' + round2(r.kwh) + ' كيلو' + (r.neg ? ' ⚠' : '') + '</div></div></div><div class="a">' + money(r.amount) + '</div>';
+      breakdown.appendChild(d);
+    }); }
+    el("othersLine").textContent = round2(c.othersKwh) + " كيلو · " + money(c.othersAmount);
+    var total = totalOutstanding();
+    var dl = el("debtLine"); dl.textContent = money(total); dl.style.color = total > 0 ? "var(--accent)" : "var(--good)";
+
+    var bar = el("ownerBlock"), amt = el("ownerAmount"), sub = el("ownerKwh"), recon = el("recon");
+    if (!c.hasTotal && !c.hasBill) { sub.textContent = "أدخل الفاتورة والقراءات"; }
+    else if (!c.hasTotal) { sub.textContent = "أكمل قراءات الساعة الأساسية"; }
+    else if (!c.hasBill) { sub.textContent = "كيلواتك: " + round2(c.ownerKwh) + " كيلو · أدخل الفاتورة"; }
+    else { sub.textContent = "كيلواتك: " + round2(c.ownerKwh) + " كيلو"; }
+    if (!c.hasBill) { amt.textContent = "—"; amt.classList.add("placeholder"); bar.classList.remove("neg"); }
+    else { amt.classList.remove("placeholder"); amt.textContent = (c.ownerAmount < 0 ? "−" : "") + money(Math.abs(c.ownerAmount)).replace(" شيكل", ""); bar.classList.toggle("neg", c.ownerAmount < 0); }
+    if (c.hasBill) {
+      if (c.ownerAmount < 0) recon.innerHTML = '<span class="pill warn">' + ICON_WARN + ' الرفاق دفعوا أكثر — عليك تسترجع ' + money(Math.abs(c.ownerAmount)) + '</span>';
+      else recon.innerHTML = '<span class="pill">' + ICON_CHECK + ' متوازن — المجموع يساوي الفاتورة تماماً</span>';
+    } else { recon.innerHTML = '<span class="pill">أدخل الفاتورة لتكتمل الحسبة</span>'; }
+
+    renderDebts();
+    renderHistory();
+  }
+
+  function renderDebts() {
+    var box = el("debts");
+    var names = allNames();
+    el("debtCount").textContent = names.filter(function (n) { return balanceFor(n) > 0; }).length;
+    if (!names.length) { box.innerHTML = '<div class="empty">لا يوجد مستحقات بعد.<br>احفظ كشفاً أول مرة.</div>'; return; }
+    var html = "";
+    var total = totalOutstanding();
+    html += '<div class="total-debt"><span class="tl">إجمالي المستحق عليهم</span><span class="tv ' + (total > 0 ? "pos" : "zero") + '">' + money(total) + '</span></div>';
+    names.forEach(function (n) {
+      var b = balanceFor(n), cls = b > 0 ? "pos" : (b < 0 ? "neg" : "zero");
+      var lab = b > 0 ? "عليه" : (b < 0 ? "له (زائد)" : "مسدد");
+      var initial = (n || "ش").trim().charAt(0) || "ش";
+      html += '<div class="debt-card"><div class="dh"><span class="avatar">' + esc(initial) + '</span><span class="dn">' + esc(n) + '</span>' +
+        '<span class="db ' + cls + '"><span class="lab">' + lab + '</span>' + money(Math.abs(b)) + '</span></div>' +
+        '<div class="row"><button class="btn primary" type="button" data-payname="' + esc(n) + '">' + ICON_CHECK + 'تسجيل سداد</button>' +
+        '<button class="btn ghost" type="button" data-payname="' + esc(n) + '" data-full="1">سدّد الكل</button></div></div>';
+    });
+    var pays = (state.payments || []).slice().reverse();
+    if (pays.length) {
+      html += '<div class="pay-list"><h4>' + ICON_CHECK + 'آخر الدفعات المسجّلة</h4>';
+      pays.slice(0, 15).forEach(function (p) {
+        html += '<div class="pay-item"><span><span class="pi-n">' + esc(p.name) + '</span> <span class="pi-d">' + fmtDate(p.date) + '</span></span><span class="pi-a">−' + money(p.amount) + '</span><button class="pi-x" data-delpay="' + p.id + '" aria-label="حذف">✕</button></div>';
+      });
+      html += '</div>';
+    }
+    box.innerHTML = html;
+    box.querySelectorAll("[data-payname]").forEach(function (b) { b.addEventListener("click", function () {
+      var name = b.dataset.payname;
+      if (b.dataset.full === "1") { recordPayment(name, Math.max(balanceFor(name), 0)); }
+      else { openPaySheet(name); }
+    }); });
+    box.querySelectorAll("[data-delpay]").forEach(function (b) { b.addEventListener("click", function () {
+      state.payments = state.payments.filter(function (p) { return p.id !== b.dataset.delpay; }); persist(); render(); toast("اتمسحت الدفعة");
+    }); });
+  }
+
+  function renderHistory() {
+    var box = el("history");
+    el("histCount").textContent = state.history.length;
+    if (!state.history.length) { box.innerHTML = '<div class="empty">لا يوجد كشوفات محفوظة بعد.<br>اضغط «حفظ الكشف» من تفاصيل الملخص.</div>'; return; }
+    box.innerHTML = "";
+    state.history.slice().reverse().forEach(function (h) {
+      var div = document.createElement("div"); div.className = "hist-item";
+      var rowsHtml = h.rows.filter(function (r) { return r.kwh !== 0; }).map(function (r) {
+        var rd = (r.last !== "" && r.cur !== "") ? '<span class="rd">' + esc(r.last) + ' ← ' + esc(r.cur) + '</span>' : "";
+        return '<div class="hrow"><span>' + esc(r.name) + ' — ' + round2(r.kwh) + ' كيلو ' + rd + '</span><span class="va">' + money(r.amount) + '</span></div>';
+      }).join("");
+      div.innerHTML = '<div class="htop"><span class="hdate">' + ICON_CAL + fmtDate(h.date) + '</span><button class="hdel" data-hid="' + h.id + '">حذف ✕</button></div>' +
+        '<div class="hsum">فاتورة: ' + money(h.bill) + ' • إجمالي ' + round2(h.totalKwh) + ' كيلو • حصتك: ' + money(h.ownerAmount) + '</div>' + rowsHtml;
+      box.appendChild(div);
+    });
+    box.querySelectorAll(".hdel").forEach(function (b) { b.addEventListener("click", function (e) {
+      var id = e.currentTarget.dataset.hid; state.history = state.history.filter(function (h) { return h.id !== id; }); persist(); render(); toast("اتمسح الكشف");
+    }); });
+  }
+
+  /* tabs */
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.addEventListener("click", function () {
+      var name = t.dataset.tab;
+      document.querySelectorAll(".tab").forEach(function (x) { x.classList.toggle("active", x.dataset.tab === name); });
+      document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.toggle("active", p.dataset.panel === name); });
+      window.scrollTo({ top: 0 });
+    });
+  });
+
+  /* sheets */
+  function openSheet(id) { var s = el(id); s.classList.add("open"); s.setAttribute("aria-hidden", "false"); }
+  function closeSheet(s) { s.classList.remove("open"); s.setAttribute("aria-hidden", "true"); }
+  el("settingsBtn").addEventListener("click", function () { openSheet("settingsSheet"); });
+  el("expandDetails").addEventListener("click", function () { openSheet("detailsSheet"); });
+  document.querySelectorAll(".sheet [data-close]").forEach(function (b) { b.addEventListener("click", function () { closeSheet(b.closest(".sheet")); }); });
+
+  /* payment sheet */
+  var payTarget = null;
+  function openPaySheet(name) {
+    payTarget = name;
+    var b = balanceFor(name);
+    el("payTitle").textContent = "تسجيل دفعة — " + name;
+    el("payBalanceLine").innerHTML = '<span>الرصيد المستحق حالياً</span><span class="v" style="color:' + (b > 0 ? "var(--accent)" : "var(--good)") + '">' + (b === 0 ? "مسدد" : (b < 0 ? "له " : "عليه ") + money(Math.abs(b))) + '</span>';
+    el("payAmount").value = b > 0 ? String(b) : "";
+    openSheet("paySheet");
+    setTimeout(function () { el("payAmount").focus(); }, 260);
+  }
+  function recordPayment(name, amount) {
+    amount = round2(num(amount));
+    if (amount <= 0) { toast("أدخل مبلغاً صحيحاً"); return false; }
+    state.payments.push({ id: uid(), name: name, amount: amount, date: todayStr() });
+    persist(); render();
+    toast(ICON_CHECK + " تم تسجيل دفعة " + money(amount) + " من " + name);
+    return true;
+  }
+  el("payFullBtn").addEventListener("click", function () { var b = balanceFor(payTarget || ""); el("payAmount").value = b > 0 ? String(b) : ""; });
+  el("payConfirmBtn").addEventListener("click", function () {
+    if (!payTarget) return;
+    if (recordPayment(payTarget, el("payAmount").value)) { closeSheet(el("paySheet")); }
+  });
+
+  /* actions */
+  el("addPerson").addEventListener("click", function () {
+    state.people.push({ id: uid(), name: "شخص " + (state.people.length + 1), last: "", cur: "" }); persist(); renderPeople(); render();
+    var inputs = peopleBox.querySelectorAll(".pname"); if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+  el("saveBtn").addEventListener("click", function () {
+    var c = compute(); if (!c.hasBill) { toast("أدخل مبلغ الفاتورة قبل الحفظ"); return; }
+    state.history.push({
+      id: uid(), date: state.date || todayStr(), bill: c.bill, totalKwh: c.totalKwh,
+      main: { last: state.mainMeter.last, cur: state.mainMeter.cur },
+      rows: c.rows.map(function (r) { return { name: r.name, last: r.last, cur: r.cur, kwh: r.kwh, amount: r.amount }; }),
+      ownerAmount: c.ownerAmount, othersAmount: c.othersAmount
+    });
+    state.mainMeter.last = state.mainMeter.cur; state.mainMeter.cur = "";
+    state.people.forEach(function (p) { p.last = p.cur; p.cur = ""; });
+    state.bill = ""; state.date = todayStr();
+    syncFields(); persist(); renderPeople(); render();
+    toast(ICON_CHECK + " تم حفظ الكشف وبدء واحد جديد");
+  });
+  el("clearBtn").addEventListener("click", function () {
+    state.mainMeter.cur = ""; state.people.forEach(function (p) { p.cur = ""; }); state.bill = "";
+    syncFields(); persist(); renderPeople(); render(); toast("اتمسحت القراءات الجديدة");
+  });
+  el("copyBtn").addEventListener("click", function () {
+    var c = compute(); if (!c.hasBill) { toast("أدخل مبلغ الفاتورة أولاً"); return; }
+    var L = [];
+    L.push("⚡ كشف الكهربا — " + fmtDate(state.date));
+    L.push("الإجمالي: " + money(c.bill) + (c.hasTotal ? " (" + round2(c.totalKwh) + " كيلو)" : ""));
+    L.push("السعر: " + c.price + " + فقد " + c.loss + " = " + c.rate + " /كيلو"); L.push("————————————");
+    c.rows.forEach(function (r) { if (r.kwh === 0) return; L.push((r.neg ? "⚠ " : "") + r.name + ": " + round2(r.kwh) + " كيلو → " + money(r.amount)); });
+    L.push("————————————"); L.push("💰 حصتي: " + money(c.ownerAmount) + (c.hasTotal ? " (" + round2(c.ownerKwh) + " كيلو)" : ""));
+    var tot = totalOutstanding();
+    if (tot > 0) L.push("📋 إجمالي المستحق عليهم: " + money(tot));
+    copyText(L.join("\n"));
+  });
+  function copyText(t) { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(function () { toast(ICON_CHECK + " انتسخ الملخص"); }, function () { fb(t); }); } else { fb(t); } }
+  function fb(t) { var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.focus(); ta.select(); try { document.execCommand("copy"); toast(ICON_CHECK + " انتسخ الملخص"); } catch (e) { toast("تعذّر النسخ"); } document.body.removeChild(ta); }
+
+  el("exportBtn").addEventListener("click", function () {
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "electricity-backup.json";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+    toast(ICON_CHECK + " تم تصدير النسخة");
+  });
+  el("importBtn").addEventListener("click", function () { el("importFile").click(); });
+  el("importFile").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var s = JSON.parse(r.result);
+        if (typeof s.price !== "undefined") state.price = s.price;
+        if (typeof s.loss !== "undefined") state.loss = s.loss;
+        state.bill = s.bill || ""; state.date = s.date || todayStr();
+        if (s.mainMeter) state.mainMeter = { last: s.mainMeter.last || "", cur: s.mainMeter.cur || "" };
+        if (Array.isArray(s.people) && s.people.length) state.people = s.people.map(function (p) { return { id: p.id || uid(), name: p.name || "", last: p.last != null ? p.last : (p.prev || ""), cur: p.cur || "" }; });
+        if (Array.isArray(s.history)) state.history = s.history;
+        if (Array.isArray(s.payments)) state.payments = s.payments;
+        state.savedAt = 0; persist(); syncFields(); renderPeople(); render();
+        toast(ICON_CHECK + " تم الاستيراد");
+      } catch (err) { toast("ملف غير صالح"); }
+    };
+    r.readAsText(f); e.target.value = "";
+  });
+
+  /* inputs */
+  el("date").addEventListener("input", function (e) { state.date = e.target.value; persist(); });
+  el("meterLast").addEventListener("input", function (e) { state.mainMeter.last = e.target.value; persist(); render(); });
+  el("meterCur").addEventListener("input", function (e) { state.mainMeter.cur = e.target.value; persist(); render(); });
+  function bindNum(id, key) { el(id).addEventListener("input", function (e) { state[key] = e.target.value; persist(); render(); }); }
+  bindNum("price", "price"); bindNum("loss", "loss"); bindNum("bill", "bill");
+
+  function syncFields() {
+    el("date").value = state.date || todayStr();
+    el("bill").value = state.bill || "";
+    el("meterLast").value = (state.mainMeter && state.mainMeter.last != null) ? state.mainMeter.last : "";
+    el("meterCur").value = (state.mainMeter && state.mainMeter.cur != null) ? state.mainMeter.cur : "";
+    el("price").value = state.price; el("loss").value = state.loss;
+  }
+  function setSync(s) {
+    var dot = el("syncStatus"), gear = el("settingsBtn");
+    dot.classList.toggle("on", s === "on"); dot.classList.toggle("sync", s === "sync"); dot.classList.toggle("off", s === "off");
+    if (gear) gear.title = s === "on" ? "متصل بالسحابة" : s === "sync" ? "جاري المزامنة…" : "غير متصل (محلي فقط)";
+  }
+
+  var toastTimer;
+  function toast(msg) { var t = el("toast"); t.innerHTML = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2600); }
+
+  function init() {
+    syncFields(); renderPeople(); render(); setSync("off");
+    pullCloud(function (ok, applied) {
+      if (applied) { syncFields(); renderPeople(); render(); }
+      setSync(ok ? "on" : "off");
+    });
+  }
+  window.addEventListener("online", function () { setSync("on"); pushCloud(); });
+  window.addEventListener("offline", function () { setSync("off"); });
+  init();
+})();
+</script>
+</body>
+</html>
