@@ -230,9 +230,38 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast svg { width: 15px; height: 15px; flex: none; }
   @media (min-width: 540px) { .wrap { padding-inline: 16px; } }
+
+  .login-gate { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg); }
+  .login-gate.hidden { display: none; }
+  .login-card { width: 100%; max-width: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow-lg); padding: 28px 22px 22px; text-align: center; }
+  .login-logo { width: 52px; height: 52px; margin: 0 auto 14px; display: grid; place-items: center; border-radius: 15px; background: linear-gradient(140deg, var(--primary), var(--primary-strong)); color: #fff; box-shadow: var(--shadow-lg); }
+  .login-logo svg { width: 26px; height: 26px; }
+  .login-card h2 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+  .login-card p { margin: 0 0 20px; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .login-card .field { text-align: start; margin-bottom: 14px; }
+  .login-card .control input[type="password"] { font-size: 16px; letter-spacing: .04em; }
+  .login-err { min-height: 18px; margin: 0 0 10px; font-size: 12.5px; font-weight: 700; color: var(--accent); text-align: center; }
+  body.locked .wrap, body.locked .bottombar, body.locked .sheet { visibility: hidden; pointer-events: none; }
 </style>
 </head>
-<body>
+<body class="locked">
+
+<!-- LOGIN -->
+<div class="login-gate" id="loginGate">
+  <div class="login-card">
+    <div class="login-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+    <h2>حاسبة الكهربا</h2>
+    <p>أدخل كلمة المرور للمتابعة</p>
+    <form id="loginForm" autocomplete="off">
+      <div class="field">
+        <label for="loginPass">كلمة المرور</label>
+        <div class="control"><input type="password" id="loginPass" inputmode="text" autocomplete="current-password" placeholder="••••••" required /></div>
+      </div>
+      <p class="login-err" id="loginErr" aria-live="polite"></p>
+      <button class="btn primary full" type="submit">دخول</button>
+    </form>
+  </div>
+</div>
 
 <!-- DETAILS SHEET -->
 <div class="sheet" id="detailsSheet" aria-hidden="true">
@@ -377,6 +406,8 @@
 <script>
 (function () {
   "use strict";
+  var AUTH_KEY = "electricity_splitter_auth";
+  var AUTH_PASS = "ayla20";
   var LS = "electricity_splitter_v1";
   var JSONBIN_KEY = "$2a$10$dYlW/UL2Ud.A9rjBiCRnjOKtzNx1JYXNYrUU1TC8.tKOmdcHXhRBS";
   var JSONBIN_BIN = "6a719700f5f4af5e29e884ee";
@@ -789,16 +820,36 @@
   var toastTimer;
   function toast(msg) { var t = el("toast"); t.innerHTML = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2600); }
 
-  function init() {
+  function unlockApp() {
+    try { sessionStorage.setItem(AUTH_KEY, "1"); } catch (e) {}
+    document.body.classList.remove("locked");
+    el("loginGate").classList.add("hidden");
+  }
+  function isAuthed() {
+    try { return sessionStorage.getItem(AUTH_KEY) === "1"; } catch (e) { return false; }
+  }
+  function setupLogin() {
+    var form = el("loginForm"), pass = el("loginPass"), err = el("loginErr");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (pass.value === AUTH_PASS) { err.textContent = ""; unlockApp(); pass.value = ""; initApp(); }
+      else { err.textContent = "كلمة المرور غير صحيحة"; pass.select(); }
+    });
+    if (isAuthed()) { unlockApp(); return true; }
+    setTimeout(function () { pass.focus(); }, 80);
+    return false;
+  }
+
+  function initApp() {
     syncFields(); renderPeople(); render(); setSync("off");
     pullCloud(function (ok, applied) {
       if (applied) { syncFields(); renderPeople(); render(); }
       setSync(ok ? "on" : "off");
     });
   }
-  window.addEventListener("online", function () { setSync("on"); pushCloud(); });
+  window.addEventListener("online", function () { if (isAuthed()) { setSync("on"); pushCloud(); } });
   window.addEventListener("offline", function () { setSync("off"); });
-  init();
+  if (setupLogin()) initApp();
 })();
 </script>
 </body>
