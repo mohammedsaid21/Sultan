@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -216,6 +217,14 @@
   .hist-item .hrow { display: flex; justify-content: space-between; font-size: 12.5px; padding: 3px 0; }
   .hist-item .hrow .va { font-weight: 700; font-variant-numeric: tabular-nums; }
   .hist-item .hrow .rd { color: var(--muted); font-size: 11px; }
+  .hist-item .hdetail { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+  .hist-item .hmeta { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+  .hist-item .hmeta b { color: var(--text); font-weight: 700; }
+  .hist-item .hsec { font-size: 11px; font-weight: 700; color: var(--primary-strong); margin: 6px 0 4px; }
+  .hist-item .hrow.zero { opacity: .55; }
+  .hist-item .hrow.owner { background: var(--primary-softer); border-radius: 8px; padding: 5px 8px; margin-top: 4px; }
+  .person-debt.hidden { display: none; }
+  .person-res.empty-period { opacity: .5; }
 
   .toast { position: fixed; bottom: calc(var(--bar-h) + 16px); left: 50%; transform: translateX(-50%) translateY(16px); background: #0f1f1b; color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 700; font-size: 13px; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; z-index: 90; display: inline-flex; align-items: center; gap: 7px; max-width: 90vw; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -330,7 +339,7 @@
     <section class="card">
       <div class="card-title"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>قراءات الرفاق <span class="badge" id="peopleBadge">0</span><button class="link-btn" id="addPerson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>إضافة</button></div>
       <div id="people"></div>
-      <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>اكتب «القراءة الجديدة» لكل شخص — «آخر قراءة» محفوظة من الكشف السابق. والمستحق بيظهر تحت كل شخص.</div>
+      <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>اكتب «القراءة الجديدة» لكل شخص — «آخر قراءة» محفوظة من الكشف السابق. المستحقات السابقة موجودة في تبويب «المستحقات».</div>
     </section>
   </div>
 
@@ -447,6 +456,7 @@
   }
 
   function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function filled(v) { return v !== "" && v != null && isFinite(parseFloat(v)); }
   function round2(n) { return Math.round(n * 100) / 100; }
   function money(n) { if (!isFinite(n)) return "—"; var r = round2(n); return (Math.round(r) === r ? r.toString() : r.toFixed(2)) + " شيكل"; }
   function esc(v) { return String(v == null ? "" : v).replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
@@ -509,29 +519,33 @@
     var price = num(state.price), loss = num(state.loss), rate = price + loss;
     var bill = num(state.bill);
     var m = state.mainMeter || { last: "", cur: "" };
-    var totalKwh = num(m.cur) - num(m.last);
-    var rows = state.people.map(function (p) { var k = num(p.cur) - num(p.last); return { id: p.id, name: p.name || "شخص", last: p.last, cur: p.cur, kwh: k, amount: k * rate, neg: k < 0 }; });
+    var totalKwh = filled(m.cur) ? num(m.cur) - num(m.last) : 0;
+    var rows = state.people.map(function (p) {
+      var hasCur = filled(p.cur);
+      var k = hasCur ? num(p.cur) - num(p.last) : 0;
+      return { id: p.id, name: p.name || "شخص", last: p.last, cur: p.cur, hasCur: hasCur, kwh: k, amount: k * rate, neg: k < 0 };
+    });
     var othersKwh = rows.reduce(function (s, r) { return s + r.kwh; }, 0);
     var othersAmount = rows.reduce(function (s, r) { return s + r.amount; }, 0);
     return { price: price, loss: loss, rate: rate, bill: bill, totalKwh: totalKwh, rows: rows,
       othersKwh: othersKwh, othersAmount: othersAmount, ownerKwh: totalKwh - othersKwh, ownerAmount: bill - othersAmount,
       hasBill: state.bill !== "" && isFinite(parseFloat(state.bill)),
-      hasTotal: m.last !== "" && m.cur !== "" && isFinite(parseFloat(m.last)) && isFinite(parseFloat(m.cur)) };
+      hasTotal: filled(m.last) && filled(m.cur) };
   }
 
   function render() {
     var c = compute();
     c.rows.forEach(function (r) {
       var kwhEl = peopleBox.querySelector('.pkwh[data-pid="' + r.id + '"]'), amtEl = peopleBox.querySelector('.pamt[data-pid="' + r.id + '"]');
-      if (kwhEl) { kwhEl.classList.toggle("warn", r.neg); kwhEl.innerHTML = (r.neg ? ICON_WARN + " " : "") + '<span class="kv">' + round2(r.kwh) + '</span> كيلو'; }
-      if (amtEl) amtEl.textContent = money(r.amount);
-      var debt = peopleBox.querySelector('.person-debt[data-pid="' + r.id + '"]');
-      if (debt) {
-        var b = balanceFor(r.name), dv = debt.querySelector(".dv");
-        debt.classList.toggle("zero", b === 0); debt.classList.toggle("credit", b < 0);
-        dv.classList.toggle("pos", b > 0); dv.classList.toggle("neg", b < 0);
-        dv.textContent = b === 0 ? "مسدد" : (b < 0 ? "له " : "عليه ") + money(Math.abs(b)).replace(" شيكل", "") + " شيكل";
+      var resEl = kwhEl ? kwhEl.closest(".person-res") : null;
+      if (resEl) resEl.classList.toggle("empty-period", !r.hasCur);
+      if (kwhEl) {
+        if (!r.hasCur) { kwhEl.classList.remove("warn"); kwhEl.innerHTML = '<span class="kv">—</span> كيلو'; }
+        else { kwhEl.classList.toggle("warn", r.neg); kwhEl.innerHTML = (r.neg ? ICON_WARN + " " : "") + '<span class="kv">' + round2(r.kwh) + '</span> كيلو'; }
       }
+      if (amtEl) amtEl.textContent = r.hasCur ? money(r.amount) : "—";
+      var debt = peopleBox.querySelector('.person-debt[data-pid="' + r.id + '"]');
+      if (debt) debt.classList.add("hidden");
     });
     el("peopleBadge").textContent = state.people.length;
 
@@ -605,6 +619,16 @@
     }); });
   }
 
+  function historyOwnerKwh(h) {
+    if (h.ownerKwh != null && isFinite(h.ownerKwh)) return h.ownerKwh;
+    var others = (h.rows || []).reduce(function (s, r) { return s + num(r.kwh); }, 0);
+    return round2(num(h.totalKwh) - others);
+  }
+  function historyRate(h) {
+    if (h.rate != null && isFinite(h.rate)) return h.rate;
+    if (h.price != null && h.loss != null) return num(h.price) + num(h.loss);
+    return state.price + state.loss;
+  }
   function renderHistory() {
     var box = el("history");
     el("histCount").textContent = state.history.length;
@@ -612,12 +636,21 @@
     box.innerHTML = "";
     state.history.slice().reverse().forEach(function (h) {
       var div = document.createElement("div"); div.className = "hist-item";
-      var rowsHtml = h.rows.filter(function (r) { return r.kwh !== 0; }).map(function (r) {
-        var rd = (r.last !== "" && r.cur !== "") ? '<span class="rd">' + esc(r.last) + ' ← ' + esc(r.cur) + '</span>' : "";
-        return '<div class="hrow"><span>' + esc(r.name) + ' — ' + round2(r.kwh) + ' كيلو ' + rd + '</span><span class="va">' + money(r.amount) + '</span></div>';
+      var rate = historyRate(h);
+      var ownerKwh = historyOwnerKwh(h);
+      var main = h.main || { last: "", cur: "" };
+      var mainLine = (main.last !== "" || main.cur !== "") ? '<div class="hmeta"><b>العداد الكلي:</b> ' + esc(main.last || "—") + ' ← ' + esc(main.cur || "—") + ' = ' + round2(h.totalKwh) + ' كيلو</div>' : "";
+      var priceLine = '<div class="hmeta"><b>السعر:</b> ' + (h.price != null ? num(h.price) : "—") + ' + فقد ' + (h.loss != null ? num(h.loss) : "—") + ' = <b>' + rate + ' شيكل/كيلو</b></div>';
+      var sumLine = '<div class="hsum">فاتورة: ' + money(h.bill) + ' • إجمالي ' + round2(h.totalKwh) + ' كيلو • حصتك: ' + money(h.ownerAmount) + ' (' + ownerKwh + ' كيلو)</div>';
+      var rowsHtml = (h.rows || []).map(function (r) {
+        var rd = (r.last !== "" && r.cur !== "") ? ' <span class="rd">(' + esc(r.last) + ' ← ' + esc(r.cur) + ')</span>' : "";
+        var cls = r.kwh === 0 ? " zero" : "";
+        return '<div class="hrow' + cls + '"><span>' + esc(r.name) + ' — ' + round2(r.kwh) + ' كيلو' + rd + '</span><span class="va">' + money(r.amount) + '</span></div>';
       }).join("");
+      var ownerHtml = '<div class="hrow owner"><span>حصتك — ' + ownerKwh + ' كيلو</span><span class="va">' + money(h.ownerAmount) + '</span></div>';
+      var othersHtml = '<div class="hmeta" style="margin-top:6px"><b>مجموع الرفاق:</b> ' + money(h.othersAmount != null ? h.othersAmount : (h.rows || []).reduce(function (s, r) { return s + num(r.amount); }, 0)) + '</div>';
       div.innerHTML = '<div class="htop"><span class="hdate">' + ICON_CAL + fmtDate(h.date) + '</span><button class="hdel" data-hid="' + h.id + '">حذف ✕</button></div>' +
-        '<div class="hsum">فاتورة: ' + money(h.bill) + ' • إجمالي ' + round2(h.totalKwh) + ' كيلو • حصتك: ' + money(h.ownerAmount) + '</div>' + rowsHtml;
+        sumLine + '<div class="hdetail">' + mainLine + priceLine + '<div class="hsec">الرفاق</div>' + rowsHtml + ownerHtml + othersHtml + '</div>';
       box.appendChild(div);
     });
     box.querySelectorAll(".hdel").forEach(function (b) { b.addEventListener("click", function (e) {
@@ -676,9 +709,10 @@
     var c = compute(); if (!c.hasBill) { toast("أدخل مبلغ الفاتورة قبل الحفظ"); return; }
     state.history.push({
       id: uid(), date: state.date || todayStr(), bill: c.bill, totalKwh: c.totalKwh,
+      price: c.price, loss: c.loss, rate: c.rate,
       main: { last: state.mainMeter.last, cur: state.mainMeter.cur },
       rows: c.rows.map(function (r) { return { name: r.name, last: r.last, cur: r.cur, kwh: r.kwh, amount: r.amount }; }),
-      ownerAmount: c.ownerAmount, othersAmount: c.othersAmount
+      ownerKwh: c.ownerKwh, ownerAmount: c.ownerAmount, othersAmount: c.othersAmount
     });
     state.mainMeter.last = state.mainMeter.cur; state.mainMeter.cur = "";
     state.people.forEach(function (p) { p.last = p.cur; p.cur = ""; });
